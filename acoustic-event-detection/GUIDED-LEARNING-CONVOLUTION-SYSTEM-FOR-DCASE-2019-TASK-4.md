@@ -47,7 +47,7 @@ DCASE2019では以下の5つの課題があった。
 
 ## 技術や手法のキモはどこ
 
-### モデルの構造
+### モデルの構造 (Audio tagging)
 
 ![model](figures/dcase2019-task4-top.png)
 
@@ -61,11 +61,55 @@ CNN + BN + ReLUを組み合わせたCNN blockを三層積み重ねる
 
 Feature Encoderによってエンコードされたあとの高レベルな特徴表現を受け取り、コンテクスト表現にする。C個のイベントカテゴリがあるとすると、embedding-level attention poolingでは高次の特徴表現をC個のコンテキスト表現に変換する。最終的にこのC個のコンテキスト表現を分類器に渡すことで音声クリップごとの確率が得られる。
 
-3. 分類器
+3. 分類器 (Audio Taggingの方)
 
 各クラスにつきFC層 + Sigmoid
 
-このモデルがweakly-supervised learningをできるのはembedding-level attention pooling moduleのおかげとのこと。`$x=\{x_1,\cdots,x_T\}$`が高次の特徴表現だったとし、`$y=\“y_1,\cdots,y_C\}$`が
+このモデルがweakly-supervised learningをできるのはembedding-level attention pooling moduleのおかげとのこと。`$x=\{x_1,\cdots,x_T\}$`が高次の特徴表現だったとし、`$y=\“y_1,\cdots,y_C\} (y_c \in \{0, 1\})$`が正解ラベルのクラスであるとする。ただし`$T$`は全フレーム数(time stepの数?)とする。
+
+続いて、各カテゴリcにつき、embedding-level attention poolingがそれぞれの時間フレームに対し異なる重み`$a_c = \{a_{c1}, \cdots, a_{cT}\}$`を`$x$`の各フレームにつき与える。結果としてコンテキスト表現`$h=\{h_1, h_2,\cdots,h_C\}$`は
+
+```{latex}
+h_c = \sum_t a_{ct}\cdot x_t
+```
+
+と計算される。`$x$`においてクラス`$c$`の予測に重要なタイムフレーム`$x_t$`には大きな`$a_{ct}$`が与えられ結果として`$h_c$`に対して大きく貢献する。この`$a_{ct}$`は以下のように計算される。
+
+```{latex}
+a_{ct} = \frac{\exp((w_c^T x_t + b_c) / d)}{\sum_k \exp((w_c^T x_k + b_c) / d)}
+```
+
+ここで`$d$`は`$x$`の次元数と同じである。
+
+**重要** `$a_{ct}$`はフレームレベルの音声イベント確率を表現できる。(多分detecionで使う？)
+
+```{latex}
+\hat{p}(y_c | x_t) = \sigma(w_c^T x_t + b_c)
+```
+
+音声クリップごとのイベント存在確率とフレーム毎のイベント存在確率はそれぞれ
+
+```{latex}
+\phi_c(x) = \begin{cases}
+    1, & \hat{\mathrm{P}}(1|x) \ge \alpha \\
+    0, & otherwise
+\end{cases}
+```
+
+```{latex}
+\varphi_c(x, t) = \begin{cases}
+    1, & \hat{p}(1 | x_t) \cdot \phi_c(x) \ge \alpha \\
+    0, & otherwise
+\end{cases}
+```
+
+`$alpha$`は0.5とおいたとのこと。
+
+### Disentangled featureについて
+
+高次の特徴を事前情報に基づいて各イベントカテゴリ毎の部分空間にモデル化するDisentangled feature(DF)を用いた。これは、複数のイベントが共起して干渉する効果を和らげるためであると述べられている。
+
+`$\chi^d(x\subset\chi^d)$`がfeature encoderによって変換されたd次元の特徴であるとする。また、`$\beta=\{e_1, e_2, \cdots, e_d\}$`が`$\chi^d$`の直行基底であるとする。DFは
 
 ## どうやって有効だと検証した
 
