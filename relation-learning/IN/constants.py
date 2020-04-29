@@ -1,0 +1,2 @@
+G = 10**5
+FEATURE_DIM = 5
