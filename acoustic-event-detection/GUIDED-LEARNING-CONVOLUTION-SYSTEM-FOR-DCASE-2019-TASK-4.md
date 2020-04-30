@@ -65,23 +65,23 @@ Feature Encoderによってエンコードされたあとの高レベルな特�
 
 各クラスにつきFC層 + Sigmoid
 
-このモデルがweakly-supervised learningをできるのはembedding-level attention pooling moduleのおかげとのこと。`$x=\{x_1,\cdots,x_T\}$`が高次の特徴表現だったとし、`$y=\“y_1,\cdots,y_C\} (y_c \in \{0, 1\})$`が正解ラベルのクラスであるとする。ただし`$T$`は全フレーム数(time stepの数?)とする。
+このモデルがweakly-supervised learningをできるのはembedding-level attention pooling moduleのおかげとのこと。$`x=\{x_1,\cdots,x_T\}`$が高次の特徴表現だったとし、$`y=\“y_1,\cdots,y_C\} (y_c \in \{0, 1\})`$が正解ラベルのクラスであるとする。ただし$`T`$は全フレーム数(time stepの数?)とする。
 
-続いて、各カテゴリcにつき、embedding-level attention poolingがそれぞれの時間フレームに対し異なる重み`$a_c = \{a_{c1}, \cdots, a_{cT}\}$`を`$x$`の各フレームにつき与える。結果としてコンテキスト表現`$h=\{h_1, h_2,\cdots,h_C\}$`は
+続いて、各カテゴリcにつき、embedding-level attention poolingがそれぞれの時間フレームに対し異なる重み$`a_c = \{a_{c1}, \cdots, a_{cT}\}`$を$`x`$の各フレームにつき与える。結果としてコンテキスト表現$`h=\{h_1, h_2,\cdots,h_C\}`$は
 
 ```{latex}
 h_c = \sum_t a_{ct}\cdot x_t
 ```
 
-と計算される。`$x$`においてクラス`$c$`の予測に重要なタイムフレーム`$x_t$`には大きな`$a_{ct}$`が与えられ結果として`$h_c$`に対して大きく貢献する。この`$a_{ct}$`は以下のように計算される。
+と計算される。$`x`$においてクラス$`c`$の予測に重要なタイムフレーム$`x_t`$には大きな$`a_{ct}`$が与えられ結果として$`h_c`$に対して大きく貢献する。この$`a_{ct}`$は以下のように計算される。
 
 ```{latex}
 a_{ct} = \frac{\exp((w_c^T x_t + b_c) / d)}{\sum_k \exp((w_c^T x_k + b_c) / d)}
 ```
 
-ここで`$d$`は`$x$`の次元数と同じである。
+ここで$`d`$は$`x`$の次元数と同じである。
 
-**重要** `$a_{ct}$`はフレームレベルの音声イベント確率を表現できる。(多分detecionで使う？)
+**重要** $`a_{ct}`$はフレームレベルの音声イベント確率を表現できる。(多分detecionで使う？)
 
 ```{latex}
 \hat{p}(y_c | x_t) = \sigma(w_c^T x_t + b_c)
@@ -103,13 +103,18 @@ a_{ct} = \frac{\exp((w_c^T x_t + b_c) / d)}{\sum_k \exp((w_c^T x_k + b_c) / d)}
 \end{cases}
 ```
 
-`$alpha$`は0.5とおいたとのこと。
+$`alpha`$は0.5とおいたとのこと。
 
 ### Disentangled featureについて
 
 高次の特徴を事前情報に基づいて各イベントカテゴリ毎の部分空間にモデル化するDisentangled feature(DF)を用いた。これは、複数のイベントが共起して干渉する効果を和らげるためであると述べられている。
 
-`$\chi^d(x\subset\chi^d)$`がfeature encoderによって変換されたd次元の特徴であるとする。また、`$\beta=\{e_1, e_2, \cdots, e_d\}$`が`$\chi^d$`の直行基底であるとする。DFは
+$`\chi^d(x\subset\chi^d)`$がfeature encoderによって変換されたd次元の特徴であるとする。また、$`\beta=\{e_1, e_2, \cdots, e_d\}`$が$`\chi^d`$の直行基底であるとする。DFは適切に基底を選択することで各カテゴリに関する部分空間を構成する。カテゴリ$`c`$の特徴空間$`\chi_c^{'}`$は
+
+```{latex}
+\beta_c^{'} = \{e_1, e_2, \cdots, e_{k_c}\} \\
+k_c =
+```
 
 ## どうやって有効だと検証した
 
