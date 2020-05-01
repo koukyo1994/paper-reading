@@ -44,13 +44,16 @@ class Simulation:
     def _create_relation_triplets(
             self, n_relations: int,
             n_attributes: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        rr = np.zeros(self.n_objects, n_relations, dtype=int)
-        rs = np.zeros(self.n_objects, n_relations, dtype=int)
-        ra = np.zeros(n_attributes, n_relations, dtype=float)
+        rr = np.zeros([self.n_steps, self.n_objects, n_relations],
+                      dtype=np.float32)
+        rs = np.zeros([self.n_steps, self.n_objects, n_relations],
+                      dtype=np.float32)
+        ra = np.zeros([self.n_steps, n_attributes, n_relations],
+                      dtype=np.float32)
         return rr, rs, ra
 
     def _create_externals(self, n_externals: int) -> np.ndarray:
-        x = np.zeros(n_externals, self.n_objects, dtype=int)
+        x = np.zeros([self.n_steps, n_externals, self.n_objects], dtype=int)
         return x
 
     def to_tensor(self):
@@ -66,7 +69,43 @@ class Simulation:
             "comment": ""
         }
         writer = animation.writers["ffmpeg"](fps=15, metadata=metadata)
+
         fig = plt.figure(figsize=(3, 3))
         plt.xlim(-200, 200)
         plt.ylim(-200, 200)
-        n_figures = len()
+
+        n_figures = len(self.objects)
+        colors = ["ro", "bo", "go", "ko", "yo", "mo", "co"]
+        if isinstance(savedir, Path):
+            filename = savedir / name
+        else:
+            filename = Path(savedir) / name
+        with writer.saving(fig, str(filename), n_figures):
+            for i in range(n_figures):
+                for j in range(self.n_objects):
+                    plt.plot(self.objects[i, 1, j], self.objects[i, 0, j],
+                             colors[j % len(colors)])
+                writer.grab_frame()
+
+
+class GravitySimulation(Simulation):
+    def _prepare_n_relations(self):
+        return self.n_objects * (self.n_objects - 1)
+
+    def _prepare_n_externals(self):
+        return 0
+
+    def _prepare_n_attributes(self):
+        return 1
+
+    def _create_relation_triplets(self, n_relations: int, n_attributes: int):
+        rr, rs, ra = super()._create_relation_triplets(n_relations,
+                                                       n_attributes)
+        cnt = 0
+        for i in range(self.n_objects):
+            for j in range(self.n_objects):
+                if i != j:
+                    rr[:, cnt, i] = 1
+                    rs[:, cnt, j] = 1
+                    cnt += 1
+        return rr, rs, ra
