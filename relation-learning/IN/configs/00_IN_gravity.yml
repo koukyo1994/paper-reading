@@ -80,9 +80,12 @@ loader:
   train:
     batch_size: 100
     shuffle: True
+    num_workers: 8
   valid:
     batch_size: 100
     shuffle: False
+    num_workers: 8
   test:
     batch_size: 100
     shuffle: False
+    num_workers: 8

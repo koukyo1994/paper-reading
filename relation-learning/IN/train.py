@@ -39,5 +39,5 @@ if __name__ == "__main__":
         loaders=loaders,
         scheduler=scheduler,
         num_epochs=global_params["num_epochs"],
-        verbose=False,
+        verbose=True,
         logdir=output_dir)
