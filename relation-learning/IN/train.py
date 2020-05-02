@@ -16,7 +16,7 @@ if __name__ == "__main__":
 
     data_conf = config["data"]
     if args.generate:
-        for c in [data_conf["train"], data_conf["val"], data_conf["test"]]:
+        for c in [data_conf["train"], data_conf["valid"], data_conf["test"]]:
             utils.generate_data(c)
 
     model = models.get_model(config).to()
