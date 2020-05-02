@@ -172,9 +172,9 @@ class Simulation:
 
 class GravitySimulation(Simulation):
     def __init__(self,
-                 n_objects: int,
-                 timestep: float,
-                 n_steps: int,
+                 n_objects: int = 3,
+                 timestep: float = 0.001,
+                 n_steps: int = 1000,
                  orbital=True):
         self.orbital = orbital
 
