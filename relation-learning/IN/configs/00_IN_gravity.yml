@@ -16,7 +16,7 @@ data:
       orbital:
         - True
         - False
-  val:
+  valid:
     size: 200
     type: GravitySimulation
     savedir: data/val
@@ -79,7 +79,7 @@ loader:
   train:
     batch_size: 100
     shuffle: True
-  val:
+  valid:
     batch_size: 100
     shuffle: False
   test:
