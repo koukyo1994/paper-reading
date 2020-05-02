@@ -17,8 +17,7 @@ class MLP(nn.Module):
 
     def forward(self, x):
         n_batch, input_dim, n_relation = x.size()
-        return self.blocks(x.view(-1, n_relation)).view(
-            n_batch, -1, n_relation)
+        return self.blocks(x.view(-1, input_dim)).view(n_batch, -1, n_relation)
 
 
 class AttributePredictor(nn.Module):
