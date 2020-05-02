@@ -28,16 +28,16 @@ class Simulation:
 
         # initialization
         self.objects = np.zeros([n_steps, const.FEATURE_DIM, n_objects],
-                                dtype=float)
+                                dtype=np.float32)
         self.triplets = (np.zeros([n_steps, self.n_objects, self.n_relations],
-                                  dtype=float),
+                                  dtype=np.float32),
                          np.zeros([n_steps, self.n_objects, self.n_relations],
-                                  dtype=float),
+                                  dtype=np.float32),
                          np.zeros(
                              [n_steps, self.n_attributes, self.n_relations],
-                             dtype=float))
+                             dtype=np.float32))
         self.externals = np.zeros([n_steps, self.n_externals, self.n_objects],
-                                  dtype=float)
+                                  dtype=np.float32)
 
     def simulate(self):
         self.objects = self._create_objects(self.objects)
@@ -69,7 +69,8 @@ class Simulation:
         return rr, rs, ra
 
     def _create_externals(self, n_externals: int) -> np.ndarray:
-        x = np.zeros([self.n_steps, n_externals, self.n_objects], dtype=int)
+        x = np.zeros([self.n_steps, n_externals, self.n_objects],
+                     dtype=np.float32)
         return x
 
     def to_tensor(self):
@@ -256,11 +257,11 @@ class GravitySimulation(Simulation):
             current_state = self.objects[step - 1]
 
             next_state = np.zeros((const.FEATURE_DIM, self.n_objects),
-                                  dtype=float)
+                                  dtype=np.float32)
             force_mat = np.zeros((self.n_objects, self.n_objects, 2),
-                                 dtype=float)
-            force_sum = np.zeros((self.n_objects, 2), dtype=float)
-            acceleration = np.zeros((self.n_objects, 2), dtype=float)
+                                 dtype=np.float32)
+            force_sum = np.zeros((self.n_objects, 2), dtype=np.float32)
+            acceleration = np.zeros((self.n_objects, 2), dtype=np.float32)
 
             for i in range(self.n_objects):
                 for j in range(i + 1, self.n_objects):

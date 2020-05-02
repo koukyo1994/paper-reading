@@ -42,7 +42,6 @@ def reform_relation_triplet(
 ) -> torch.Tensor:
     assert objects.size(2) == triplet[0].size(1)
     assert objects.size(2) == triplet[1].size(1)
-    assert objects.size(2) == triplet[2].size(1)
 
     return torch.cat([
         torch.matmul(objects, triplet[0]),
