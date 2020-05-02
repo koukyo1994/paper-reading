@@ -47,7 +47,7 @@ def reform_relation_triplet(
         torch.matmul(objects, triplet[0]),
         torch.matmul(objects, triplet[1]), triplet[2]
     ],
-                     dim=0)
+                     dim=1)
 
 
 def aggregation(objects: torch.Tensor, externals: torch.Tensor,
@@ -58,7 +58,7 @@ def aggregation(objects: torch.Tensor, externals: torch.Tensor,
         objects, externals,
         torch.matmul(effects, triplet[0].transpose(dim0=1, dim1=2))
     ],
-                     dim=0)
+                     dim=1)
 
 
 def aggregate_prediction(prediction: torch.Tensor) -> torch.Tensor:
