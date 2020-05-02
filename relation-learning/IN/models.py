@@ -96,3 +96,13 @@ class InteractionNetwork(nn.Module):
             return prediction, attribute
         else:
             return prediction
+
+
+def get_model(config: dict):
+    model_config = config["model"]
+    model_name = model_config["name"]
+
+    if model_name == "IN":
+        return InteractionNetwork(**model_config["params"])
+    else:
+        raise NotImplementedError

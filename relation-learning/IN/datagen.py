@@ -11,11 +11,12 @@ from typing import Tuple, Union
 from scipy.io import loadmat, savemat
 from scipy.sparse import csr_matrix
 
-from utils import set_seed
-
 
 class Simulation:
-    def __init__(self, n_objects: int, timestep: float, n_steps: int):
+    def __init__(self,
+                 n_objects: int = 3,
+                 timestep: float = 0.001,
+                 n_steps: int = 1000):
         self.n_steps = n_steps
         self.n_objects = n_objects
         self.timestep = timestep
@@ -138,19 +139,35 @@ class Simulation:
         state_dict = {
             "objects": objects,
             "externals": externals,
-            "triplets": triplets
+            "triplets": triplets,
+            "n_steps": self.n_steps,
+            "n_objects": self.n_objects,
+            "n_relations": self.n_relations,
+            "timestep": self.timestep
         }
         savemat(str(filename), state_dict)
 
     def load(self, path: Union[Path, str]):
         state_dict = loadmat(str(path))
+
+        n_steps = state_dict["n_steps"][0, 0]
+        n_objects = state_dict["n_objects"][0, 0]
+        n_relations = state_dict["n_relations"][0, 0]
+        timestep = state_dict["timestep"][0, 0]
+
         self.objects = state_dict["objects"].toarray().reshape(
-            self.n_steps, -1, self.n_objects)
+            n_steps, -1, n_objects)
         self.externals = state_dict["externals"].toarray().reshape(
-            self.n_steps, -1, self.n_objects)
+            n_steps, -1, n_objects)
         self.triplets = tuple(  # type: ignore
-            t.toarray().reshape(self.n_steps, -1, self.n_relations)
+            t.toarray().reshape(n_steps, -1, n_relations)
             for t in state_dict["triplets"][0])
+
+        self.n_steps = n_steps
+        self.n_objects = n_objects
+        self.n_relations = n_relations
+        self.timestep = timestep
+        self.n_attributes = self.triplets[2].shape[1]
 
 
 class GravitySimulation(Simulation):
@@ -278,7 +295,6 @@ class GravitySimulation(Simulation):
 
 
 if __name__ == "__main__":
-    set_seed(1213)
     sim = GravitySimulation(n_objects=3, timestep=1e-3, n_steps=1000)
 
     sim.simulate()
@@ -296,6 +312,6 @@ if __name__ == "__main__":
 
     del sim
 
-    sim = GravitySimulation(n_objects=3, timestep=1e-3, n_steps=1000)
+    sim = GravitySimulation(n_objects=5, timestep=1e-3, n_steps=1000)
     sim.load("data/test.mat")
     print(sim.objects.shape)

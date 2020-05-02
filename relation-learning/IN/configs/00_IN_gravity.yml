@@ -1,0 +1,86 @@
+globals:
+  seed: 1213
+  device: cuda
+  num_epochs: 2000
+
+data:
+  train:
+    size: 1000
+    type: GravitySimulation
+    savedir: data/train
+    params:
+      n_objects: 6
+      timestep: 0.001
+      n_steps: 1000
+      orbital:
+        - True
+        - False
+  val:
+    size: 200
+    type: GravitySimulation
+    savedir: data/val
+    params:
+      n_objects:
+        - 3
+        - 6
+        - 12
+      timestep: 0.001
+      n_steps: 1000
+      orbital:
+        - True
+        - False
+  test:
+    size: 200
+    type: GravitySimulation
+    savedir: data/test
+    params:
+      n_objects:
+        - 3
+        - 6
+        - 12
+      timestep: 0.001
+      n_steps: 1000
+      orbital:
+        - True
+        - False
+
+model:
+  name: IN
+  params:
+    relation:
+      shapes:
+        - 150
+        - 150
+        - 150
+        - 150
+        - 100
+    object:
+      shapes:
+        - 100
+        - 2
+
+loss:
+  name: MSELoss
+
+optimizer:
+  name: Adam
+  params:
+    lr: 0.001
+
+scheduler:
+  name: ReduceLROnPlateau
+  params:
+    patience: 40
+    verbose: True
+    factor: 0.8
+
+loader:
+  train:
+    batch_size: 100
+    shuffle: True
+  val:
+    batch_size: 100
+    shuffle: False
+  test:
+    batch_size: 100
+    shuffle: False
