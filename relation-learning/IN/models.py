@@ -68,6 +68,7 @@ def aggregate_prediction(prediction: torch.Tensor) -> torch.Tensor:
 
 class InteractionNetwork(nn.Module):
     def __init__(self, config: dict):
+        super(InteractionNetwork, self).__init__()
         relation_module_config = config["relation"]
         object_module_config = config["object"]
 
