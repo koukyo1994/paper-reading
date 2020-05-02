@@ -103,6 +103,6 @@ def get_model(config: dict):
     model_name = model_config["name"]
 
     if model_name == "IN":
-        return InteractionNetwork(**model_config["params"])
+        return InteractionNetwork(model_config["params"])
     else:
         raise NotImplementedError
