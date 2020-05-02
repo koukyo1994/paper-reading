@@ -2,6 +2,7 @@ globals:
   seed: 1213
   device: cuda
   num_epochs: 2000
+  output_dir: output/gravity
 
 data:
   train:

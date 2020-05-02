@@ -12,6 +12,7 @@ if __name__ == "__main__":
 
     utils.set_seed(global_params["seed"])
     device = utils.get_device(global_params)
+    output_dir = global_params["output_dir"]
 
     data_conf = config["data"]
     if args.generate:
@@ -38,4 +39,5 @@ if __name__ == "__main__":
         loaders=loaders,
         scheduler=scheduler,
         num_epochs=global_params["num_epochs"],
-        verbose=False)
+        verbose=False,
+        logdir=output_dir)
