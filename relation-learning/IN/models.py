@@ -84,7 +84,7 @@ class InteractionNetwork(nn.Module):
             self.predict_attribute = True
 
     def forward(self, objects, externals, triplet):
-        relation_input = reform_relation_triplet((objects, triplet))
+        relation_input = reform_relation_triplet(objects, triplet)
 
         effects = self.relation_module(relation_input)
         aggregated_input = aggregation(objects, externals, effects, triplet)
