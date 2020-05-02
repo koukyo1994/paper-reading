@@ -50,14 +50,14 @@ model:
   params:
     relation:
       shapes:
-        - 30
+        - 11
         - 150
         - 150
         - 150
         - 100
     object:
       shapes:
-        - 100
+        - 105
         - 100
         - 2
 
