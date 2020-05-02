@@ -1,6 +1,4 @@
-import tempfile
-
-import cv2
+import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
@@ -10,6 +8,8 @@ import constants as const
 from pathlib import Path
 from typing import Tuple, Union
 
+from utils import set_seed
+
 
 class Simulation:
     def __init__(self, n_objects: int, timestep: float, n_steps: int):
@@ -18,19 +18,28 @@ class Simulation:
         self.timestep = timestep
 
         # dummy
-        n_relations = self._prepare_n_relations()
-        n_attributes = self._prepare_n_attributes()
-        n_externals = self._prepare_n_externals()
+        self.n_relations = self._prepare_n_relations()
+        self.n_attributes = self._prepare_n_attributes()
+        self.n_externals = self._prepare_n_externals()
 
         # initialization
         self.objects = np.zeros([n_steps, const.FEATURE_DIM, n_objects],
                                 dtype=float)
+        self.triplets = (np.zeros([n_steps, self.n_objects, self.n_relations],
+                                  dtype=float),
+                         np.zeros([n_steps, self.n_objects, self.n_relations],
+                                  dtype=float),
+                         np.zeros(
+                             [n_steps, self.n_attributes, self.n_relations],
+                             dtype=float))
+        self.externals = np.zeros([n_steps, self.n_externals, self.n_objects],
+                                  dtype=float)
 
-        # simulation
+    def simulate(self):
         self.objects = self._create_objects(self.objects)
-        self.triplets = self._create_relation_triplets(n_relations,
-                                                       n_attributes)
-        self.externals = self._create_externals(n_externals)
+        self.triplets = self._create_relation_triplets(self.n_relations,
+                                                       self.n_attributes)
+        self.externals = self._create_externals(self.n_externals)
 
     def _prepare_n_relations(self) -> int:
         return self.n_objects
@@ -72,36 +81,43 @@ class Simulation:
             filename = Path(savedir) / name
 
         colors = ["r", "b", "g", "k", "y", "m", "c"]
-        out_img_fnames = []
-        with tempfile.TemporaryDirectory() as td:
-            dirname = Path(td)
-            for i in range(self.n_steps):
-                fig = plt.figure(figsize=(3, 3))
-                ax = fig.add_subplot(111)
-                ax.set_xlim(-200, 200)
-                ax.set_ylim(-200, 200)
-                for j in range(self.n_objects):
-                    ax.scatter(
-                        self.objects[i, 1, j],
-                        self.objects[i, 0, j],
-                        c=colors[j % len(colors)],
-                        marker="o")
-                ax.axis("off")
-                fig.savefig(dirname / f"{i}.png")
-                out_img_fnames.append(str(dirname / f"{i}.png"))
-                plt.close(fig)
+        fig = plt.figure(figsize=(3, 3))
+        ax = fig.add_subplot(111)
+        ax.set(xlim=(-200, 200), ylim=(-200, 200))
+        ax.axis("off")
+        # initialize
+        N_TRAJECTORY = 20
+        points = []
+        for j in range(self.n_objects):
+            for _ in range(N_TRAJECTORY):
+                p, = ax.plot([], [], "o", color=colors[j % len(colors)])
+                points.append(p)
 
-            tmp = cv2.imread(out_img_fnames[0])
-            IMG_SIZE = tmp.shape[0]
+        def init():
+            return tuple(points)
 
-            fourcc = cv2.VideoWriter_fourcc("m", "p", "4", "v")
-            video = cv2.VideoWriter(
-                str(filename), fourcc, 20.0, (IMG_SIZE, IMG_SIZE))
+        def update(step: int):
+            for j in range(self.n_objects):
+                offset = j * N_TRAJECTORY
+                for o in range(N_TRAJECTORY):
 
-            for img_file_names in out_img_fnames:
-                img = cv2.imread(img_file_names)
-                video.write(img)
-            video.release()
+                    alpha = 1 / N_TRAJECTORY * (o + 1)
+
+                    index = step - (N_TRAJECTORY - o - 1)
+                    if index < 0:
+                        index = 0
+                    data = self.objects[index, :, j]
+                    x, y = data[1], data[2]
+
+                    points[offset].set_data(x, y)
+                    points[offset].set_alpha(alpha)
+
+                    offset += 1
+            return points
+
+        ani = animation.FuncAnimation(
+            fig, update, frames=self.n_steps, interval=10, init_func=init)
+        ani.save(filename)
 
 
 class GravitySimulation(Simulation):
@@ -229,7 +245,11 @@ class GravitySimulation(Simulation):
 
 
 if __name__ == "__main__":
+    set_seed(1213)
     sim = GravitySimulation(n_objects=3, timestep=1e-3, n_steps=1000)
+
+    sim.simulate()
+
     objects, externals, triplets = sim.to_tensor()
 
     print("objects size: ", objects.size())
