@@ -1,4 +1,6 @@
-import matplotlib.animation as animation
+import tempfile
+
+import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
@@ -64,29 +66,42 @@ class Simulation:
         return objects, externals, triplets
 
     def to_mp4(self, savedir: Union[Path, str], name: str):
-        metadata = {
-            "title": f"{name} animation",
-            "artist": "Hidehisa Arai",
-            "comment": ""
-        }
-        writer = animation.writers["ffmpeg"](fps=15, metadata=metadata)
-
-        fig = plt.figure(figsize=(3, 3))
-        plt.xlim(-200, 200)
-        plt.ylim(-200, 200)
-
-        n_figures = len(self.objects)
-        colors = ["ro", "bo", "go", "ko", "yo", "mo", "co"]
         if isinstance(savedir, Path):
             filename = savedir / name
         else:
             filename = Path(savedir) / name
-        with writer.saving(fig, str(filename), n_figures):
-            for i in range(n_figures):
+
+        colors = ["r", "b", "g", "k", "y", "m", "c"]
+        out_img_fnames = []
+        with tempfile.TemporaryDirectory() as td:
+            dirname = Path(td)
+            for i in range(self.n_steps):
+                fig = plt.figure(figsize=(3, 3))
+                ax = fig.add_subplot(111)
+                ax.set_xlim(-200, 200)
+                ax.set_ylim(-200, 200)
                 for j in range(self.n_objects):
-                    plt.plot(self.objects[i, 1, j], self.objects[i, 0, j],
-                             colors[j % len(colors)])
-                writer.grab_frame()
+                    ax.scatter(
+                        self.objects[i, 1, j],
+                        self.objects[i, 0, j],
+                        c=colors[j % len(colors)],
+                        marker="o")
+                ax.axis("off")
+                fig.savefig(dirname / f"{i}.png")
+                out_img_fnames.append(str(dirname / f"{i}.png"))
+                plt.close(fig)
+
+            tmp = cv2.imread(out_img_fnames[0])
+            IMG_SIZE = tmp.shape[0]
+
+            fourcc = cv2.VideoWriter_fourcc("m", "p", "4", "v")
+            video = cv2.VideoWriter(
+                str(filename), fourcc, 20.0, (IMG_SIZE, IMG_SIZE))
+
+            for img_file_names in out_img_fnames:
+                img = cv2.imread(img_file_names)
+                video.write(img)
+            video.release()
 
 
 class GravitySimulation(Simulation):
@@ -188,16 +203,16 @@ class GravitySimulation(Simulation):
                                            current_state[:3, j])
                         force_mat[i, j] += force
                         force_mat[j, i] -= force
-            force_sum[i] = np.sum(force_mat[i], axis=0)
-            # F = ma
-            acceleration[i] = force_sum[i] / current_state[0, i]
+                force_sum[i] = np.sum(force_mat[i], axis=0)
+                # F = ma
+                acceleration[i] = force_sum[i] / current_state[0, i]
 
-            # Copy mass - always constant
-            next_state[0, i] = current_state[0, i]
-            next_state[3:5, i] = current_state[
-                3:5, i] + acceleration[i] * self.timestep
-            next_state[1:3, i] = current_state[
-                1:3, i] + next_state[3:5, i] * self.timestep
+                # Copy mass - always constant
+                next_state[0, i] = current_state[0, i]
+                next_state[3:5, i] = current_state[
+                    3:5, i] + acceleration[i] * self.timestep
+                next_state[1:3, i] = current_state[
+                    1:3, i] + next_state[3:5, i] * self.timestep
             self.objects[step] = next_state
         return self.objects
 
