@@ -8,6 +8,9 @@ import constants as const
 from pathlib import Path
 from typing import Tuple, Union
 
+from scipy.io import loadmat, savemat
+from scipy.sparse import csr_matrix
+
 from utils import set_seed
 
 
@@ -76,8 +79,10 @@ class Simulation:
 
     def to_mp4(self, savedir: Union[Path, str], name: str):
         if isinstance(savedir, Path):
+            savedir.mkdir(exist_ok=True, parents=True)
             filename = savedir / name
         else:
+            Path(savedir).mkdir(exist_ok=True, parents=True)
             filename = Path(savedir) / name
 
         colors = ["r", "b", "g", "k", "y", "m", "c"]
@@ -118,6 +123,34 @@ class Simulation:
         ani = animation.FuncAnimation(
             fig, update, frames=self.n_steps, interval=10, init_func=init)
         ani.save(filename)
+
+    def save(self, savedir: Union[Path, str], name: str):
+        if isinstance(savedir, Path):
+            savedir.mkdir(exist_ok=True, parents=True)
+            filename = savedir / name
+        else:
+            Path(savedir).mkdir(exist_ok=True, parents=True)
+            filename = Path(savedir) / name
+        objects = csr_matrix(self.objects.flatten())
+        externals = csr_matrix(self.externals.flatten())
+        triplets = tuple(csr_matrix(t.flatten()) for t in self.triplets)
+
+        state_dict = {
+            "objects": objects,
+            "externals": externals,
+            "triplets": triplets
+        }
+        savemat(str(filename), state_dict)
+
+    def load(self, path: Union[Path, str]):
+        state_dict = loadmat(str(path))
+        self.objects = state_dict["objects"].toarray().reshape(
+            self.n_steps, -1, self.n_objects)
+        self.externals = state_dict["externals"].toarray().reshape(
+            self.n_steps, -1, self.n_objects)
+        self.triplets = tuple(  # type: ignore
+            t.toarray().reshape(self.n_steps, -1, self.n_relations)
+            for t in state_dict["triplets"][0])
 
 
 class GravitySimulation(Simulation):
@@ -259,3 +292,10 @@ if __name__ == "__main__":
     print("triplet third elem size: ", triplets[2].size())
 
     sim.to_mp4(savedir="data", name="test.mp4")
+    sim.save(savedir="data", name="test.mat")
+
+    del sim
+
+    sim = GravitySimulation(n_objects=3, timestep=1e-3, n_steps=1000)
+    sim.load("data/test.mat")
+    print(sim.objects.shape)
