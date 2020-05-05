@@ -1,7 +1,5 @@
 # Non-local Neural Networks
 
-<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" id="MathJax-script"></script>
-
 ## Basic Information
 
 | 引用情報 |                                                                                                          |
@@ -45,9 +43,13 @@ Non-local meansはフィルタリングアルゴリズムの一つで画像中�
 
 non-local operationは以下のようにして定義される。
 
-$$
-y_i = \frac{1}{\mathcal{c}(x)}\sum_{\forall j}f(x_i, x_j)g(x_j)
-$$
+https://latex.codecogs.com/gif.latex?y_i&space;=&space;\frac{1}{c(x)}\sum_{\forall&space;j}f(x_i,&space;x_j)g(x_j)
+
+ここで`i`, `j`は出力中での場所を表しており、https://latex.codecogs.com/gif.latex?yはhttps://latex.codecogs.com/gif.latex?xと同じサイズの出力である。関数`f`はスカラーを計算し、`g`は地点`j`の入力信号の表現を計算する。これらは`C(x)`により標準化をされる。
+
+(これrelation networksでは？)
+
+`f`や`g`の構成の仕方はいくつかあるがそこまで重要ではない。論文中では`g`は普通の線形変換https://latex.codecogs.com/gif.latex?g(x_j)&space;=&space;W_g&space;x_j である。
 
 ## どうやって有効だと検証した
 
