@@ -43,13 +43,13 @@ Non-local meansはフィルタリングアルゴリズムの一つで画像中�
 
 non-local operationは以下のようにして定義される。
 
-![non-local operation](https://latex.codecogs.com/gif.latex?y_i&space;=&space;\frac{1}{c(x)}\sum_{\forall&space;j}f(x_i,&space;x_j)g(x_j))
+![non-local operation](https://latex.codecogs.com/gif.latex?y_i%20%3D%20%5Cfrac%7B1%7D%7Bc%28x%29%7D%5Csum_%7B%5Cforall%20j%7Df%28x_i%2C%20x_j%29g%28x_j%29)
 
 ここで`i`, `j`は出力中での場所を表しており、![y](https://latex.codecogs.com/gif.latex?y)は![x](https://latex.codecogs.com/gif.latex?x)と同じサイズの出力である。関数`f`はスカラーを計算し、`g`は地点`j`の入力信号の表現を計算する。これらは`C(x)`により標準化をされる。
 
 (これrelation networksでは？)
 
-`f`や`g`の構成の仕方はいくつかあるがそこまで重要ではない。論文中では`g`は普通の線形変換![g](https://latex.codecogs.com/gif.latex?g(x_j)&space;=&space;W_g&space;x_j)である。
+`f`や`g`の構成の仕方はいくつかあるがそこまで重要ではない。論文中では`g`は普通の線形変換![g](https://latex.codecogs.com/gif.latex?g%28x_j%29%20%3D%20W_g%20x_j)である。
 
 ## どうやって有効だと検証した
 
