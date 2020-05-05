@@ -43,13 +43,13 @@ Non-local meansはフィルタリングアルゴリズムの一つで画像中�
 
 non-local operationは以下のようにして定義される。
 
-https://latex.codecogs.com/gif.latex?y_i&space;=&space;\frac{1}{c(x)}\sum_{\forall&space;j}f(x_i,&space;x_j)g(x_j)
+![non-local operation](https://latex.codecogs.com/gif.latex?y_i&space;=&space;\frac{1}{c(x)}\sum_{\forall&space;j}f(x_i,&space;x_j)g(x_j))
 
-ここで`i`, `j`は出力中での場所を表しており、https://latex.codecogs.com/gif.latex?yはhttps://latex.codecogs.com/gif.latex?xと同じサイズの出力である。関数`f`はスカラーを計算し、`g`は地点`j`の入力信号の表現を計算する。これらは`C(x)`により標準化をされる。
+ここで`i`, `j`は出力中での場所を表しており、![y](https://latex.codecogs.com/gif.latex?y)は![x](https://latex.codecogs.com/gif.latex?x)と同じサイズの出力である。関数`f`はスカラーを計算し、`g`は地点`j`の入力信号の表現を計算する。これらは`C(x)`により標準化をされる。
 
 (これrelation networksでは？)
 
-`f`や`g`の構成の仕方はいくつかあるがそこまで重要ではない。論文中では`g`は普通の線形変換https://latex.codecogs.com/gif.latex?g(x_j)&space;=&space;W_g&space;x_j である。
+`f`や`g`の構成の仕方はいくつかあるがそこまで重要ではない。論文中では`g`は普通の線形変換![g](https://latex.codecogs.com/gif.latex?g(x_j)&space;=&space;W_g&space;x_j)である。
 
 ## どうやって有効だと検証した
 
