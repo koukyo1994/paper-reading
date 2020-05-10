@@ -16,29 +16,67 @@ data:
       orbital:
         - True
         - False
-  valid:
-    size: 200
+  valid3:
+    size: 66
     type: GravitySimulation
-    savedir: data/val
+    savedir: data/val3
     params:
-      n_objects:
-        - 3
-        - 6
-        - 12
+      n_objects: 3
       timestep: 0.001
       n_steps: 1000
       orbital:
         - True
         - False
-  test:
-    size: 200
+  valid6:
+    size: 67
     type: GravitySimulation
-    savedir: data/test
+    savedir: data/val6
     params:
-      n_objects:
-        - 3
-        - 6
-        - 12
+      n_objects: 6
+      timestep: 0.001
+      n_steps: 1000
+      orbital:
+        - True
+        - False
+  valid12:
+    size: 66
+    type: GravitySimulation
+    savedir: data/val12
+    params:
+      n_objects: 12
+      timestep: 0.001
+      n_steps: 1000
+      orbital:
+        - True
+        - False
+  test3:
+    size: 66
+    type: GravitySimulation
+    savedir: data/test3
+    params:
+      n_objects: 3
+      timestep: 0.001
+      n_steps: 1000
+      orbital:
+        - True
+        - False
+  test6:
+    size: 67
+    type: GravitySimulation
+    savedir: data/test6
+    params:
+      n_objects: 6
+      timestep: 0.001
+      n_steps: 1000
+      orbital:
+        - True
+        - False
+  test12:
+    size: 66
+    type: GravitySimulation
+    savedir: data/test12
+    params:
+      n_objects: 12
       timestep: 0.001
       n_steps: 1000
       orbital:
@@ -81,7 +119,15 @@ loader:
     batch_size: 100
     shuffle: True
     num_workers: 8
-  valid:
+  valid3:
+    batch_size: 100
+    shuffle: False
+    num_workers: 8
+  valid6:
+    batch_size: 100
+    shuffle: False
+    num_workers: 8
+  valid12:
     batch_size: 100
     shuffle: False
     num_workers: 8

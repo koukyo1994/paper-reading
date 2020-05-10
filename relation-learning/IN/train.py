@@ -16,7 +16,7 @@ if __name__ == "__main__":
 
     data_conf = config["data"]
     if args.generate:
-        for c in [data_conf["train"], data_conf["valid"], data_conf["test"]]:
+        for c in data_conf.values():
             utils.generate_data(c)
 
     model = models.get_model(config).to()
@@ -25,7 +25,7 @@ if __name__ == "__main__":
     scheduler = utils.get_scheduler(optimizer, config)
     loaders = {
         phase: utils.get_loader(config, phase)
-        for phase in ["train", "valid"]
+        for phase in ["train", "valid3", "valid6", "valid12"]
     }
 
     runner = SupervisedRunner(
