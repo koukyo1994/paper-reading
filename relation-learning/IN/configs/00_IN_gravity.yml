@@ -27,7 +27,7 @@ data:
       orbital:
         - True
         - False
-  valid6:
+  valid:
     size: 67
     type: GravitySimulation
     savedir: data/val6
@@ -123,7 +123,7 @@ loader:
     batch_size: 100
     shuffle: False
     num_workers: 8
-  valid6:
+  valid:
     batch_size: 100
     shuffle: False
     num_workers: 8

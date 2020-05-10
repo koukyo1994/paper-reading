@@ -25,7 +25,7 @@ if __name__ == "__main__":
     scheduler = utils.get_scheduler(optimizer, config)
     loaders = {
         phase: utils.get_loader(config, phase)
-        for phase in ["train", "valid3", "valid6", "valid12"]
+        for phase in ["train", "valid3", "valid", "valid12"]
     }
 
     runner = SupervisedRunner(
