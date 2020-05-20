@@ -60,7 +60,7 @@ Weakly-supervisedな設定、すなわち画像レベルのラベルしか用意
 
 前項であげた三つの特色がそれぞれ図に示されている。
 
-1. nGWP(normalized Global Weight Pooling)はセグメンテーションのマスクを分類判別に用いるための集約関数であり、*semantic fidelity*を実現するために重要である。これは**ピクセルごとのconfidenceを用いてそれぞれの分類スコアに相対的な重み付けをする**ものである。また、*completeness*の実現のために分類スコアに対して**focal mask penalty**というものを適用している。
+1. nGWP(normalized Global Weighted Pooling)はセグメンテーションのマスクを分類判別に用いるための集約関数であり、*semantic fidelity*を実現するために重要である。これは**ピクセルごとのconfidenceを用いてそれぞれの分類スコアに相対的な重み付けをする**ものである。また、*completeness*の実現のために分類スコアに対して**focal mask penalty**というものを適用している。
 2. *local-consistency*の実現のためにPAMR(Pixel-Adaptive Mask Refinement)を用いている。これは粗いsegmentation maskを見かけ上の手がかりを元に修正するものである。修正されたマスクは擬似的なground truthラベルとして分類の学習と同時に行われるsegmentationの学習に用いられる。
 3. PAMRで修正されたラベルはまだ誤りを含む可能性があり学習に影響が出かねないのでSG(Stochastic Gate)により、表現力は高いが誤りが起きやすい*深い*特徴と表現力は低いが誤りを起こしづらい*浅い*特徴を確率的に組み合わせることで対応する。
 
@@ -73,6 +73,33 @@ Weakly-supervisedな設定、すなわち画像レベルのラベルしか用意
 となる。ただし`h, w`は画像の縦横のサイズである。クラス`c`に対するClass Activation Mapping(CAM)は次のように計算される。
 
 <img src="https://latex.codecogs.com/gif.latex?\inline&space;m_{c,&space;:.&space;:}^{CAM}=\max\left(0,&space;\sum_{k=1}^K&space;a_{c,k}x_{k,&space;:,&space;:}\right)" title="m_{c, :. :}^{CAM}=\max\left(0, \sum_{k=1}^K a_{c,k}x_{k, :, :}\right)" />
+
+これは特徴マップ中の小領域における予測を覆い隠してしまう可能性があるためセグメンテーションのマスク予測には不適である。また、CAM-GAPを用いることは以下のような問題点がある。
+
+1. CAMのマスク値は制限がなされていない(`0-1`の範囲におさまる、といった制約がない)一方、セグメンテーションのマスク値は正規化する必要がある。
+2. GAPを用いると各ピクセル値に割り当てられるクラスラベルは一つだけである、といったセグメンテーションにおける仮定を反映していない。
+
+![cam-gap-and-ngwp](figures/cam-gap-and-ngwp.png)
+
+### nGWP
+
+normalized Global Weighted Poolingではまず特徴マップ<img src="https://latex.codecogs.com/gif.latex?\inline&space;x_{:,:,:}" title="x_{:,:,:}" />からピクセルごとの各クラスの分類スコア<img src="https://latex.codecogs.com/gif.latex?\inline&space;y_{:,:,:}\in&space;C\times&space;h\times&space;w" title="y_{:,:,:}\in C\times h\times w" />を算出する。その上でセグメンテーションと同様に背景を表現するチャンネルを一つ足してピクセルごとの`softmax`をとって信頼度つきのマスク<img src="https://latex.codecogs.com/gif.latex?\inline&space;m_{:,&space;:,&space;:}" title="m_{:, :, :}" />を得る。分類スコアを計算するために以下の式で定義される*normalized Global Weighted Pooling*を適用する。
+
+<img src="https://latex.codecogs.com/gif.latex?\inline&space;y_c^{nGWP}&space;=&space;\frac{\sum_{i,j}m_{c,i,j}y_{c,i,j}}{\epsilon&plus;\sum_{i^{'},j^{'}}m_{c,i^{'},j^{'}}}" title="y_c^{nGWP} = \frac{\sum_{i,j}m_{c,i,j}y_{c,i,j}}{\epsilon+\sum_{i^{'},j^{'}}m_{c,i^{'},j^{'}}}" />
+
+これにより小さな領域のクラスも拾うことができるようになる一方で、領域のサイズにスコアがよらないようになっているためrecallがGAPより低くなってしまう可能性がある。これを防ぐため正解クラスのマスクのサイズを大きくするような以下の損失をかける。
+
+<img src="https://latex.codecogs.com/gif.latex?y_c^{size}=\log&space;\left(\lambda&space;&plus;&space;\frac{1}{hw}\sum_{i,j}m_{c,i,j}\right)" title="y_c^{size}=\log \left(\lambda + \frac{1}{hw}\sum_{i,j}m_{c,i,j}\right)" />
+
+これによりマスクが0に近いときのみ大きな負の値がつくため、マスクを大きくするような効果が得られる。また、分類の難易度に応じた損失設計も可能であり、この損失項を一般化してfocal lossをかけることとした。
+
+<img src="https://latex.codecogs.com/gif.latex?y_c^{size-focal}=(1-\bar{m}_c)^p&space;\log(\lambda&space;&plus;&space;\bar{m}_c),&space;\bar{m}_c=\frac{1}{hw}\sum_{i,j}m_{c,i,j}" title="y_c^{size-focal}=(1-\bar{m}_c)^p \log(\lambda + \bar{m}_c), \bar{m}_c=\frac{1}{hw}\sum_{i,j}m_{c,i,j}" />
+
+最終的な出力は<img src="https://latex.codecogs.com/gif.latex?\inline&space;y_c=y_c^{nGWP}&space;&plus;&space;y_c^{size-focal}" title="y_c=y_c^{nGWP} + y_c^{size-focal}" />とし、これに対しmulti-label soft margin lossを分類問題の損失として適用した。
+
+### Pixel-Adaptive Mask Refinement
+
+分類のロス設計によって*semantic fidelity*と*completeness*については対応ができるが、*local consistency*についてはできていないのでmaskの修正を行う必要がある。local consistencyは近傍にある似た見た目の領域は同じラベルがふられるべきであるという制約である。
 
 ## どうやって有効だと検証した
 
