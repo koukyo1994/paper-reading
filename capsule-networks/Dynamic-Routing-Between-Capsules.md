@@ -63,7 +63,41 @@ entityの存在確率をベクトルの大きさで測るので非線形の`squa
 
 ![algorithm](figures/dynamic-routing-algorithm.png)
 
+### Loss
+
+ある数字kがあるときのみ、トップの層において数字kに対応したcapsuleのベクトルの長さが大きくなるようにしたい。複数の数字が存在することを考え数字kごとに別のmargin lossを用いた。
+
+<img src="https://latex.codecogs.com/gif.latex?L_k=T_k\max(0,m^&plus;-\|\mathrm{v}_k\|)^2&plus;\lambda(1-T_k)\max(0,\|\mathrm{v}_k\|-m^-)^2" title="L_k=T_k\max(0,m^+-\|\mathrm{v}_k\|)^2+\lambda(1-T_k)\max(0,\|\mathrm{v}_k\|-m^-)^2" />
+
+### アーキテクチャ
+
+![architecture](figures/model-architecture.png)
+
+### Reconstruction
+
+digit capsuleが入力された数字のパラメータをうまくエンコードできるように再構成の損失を加えた。学習においては正解の数字のcapsule以外のactivityベクトルを隠してその数字のベクトルを用いて再構成を行った。digit capsuleの出力のベクトルは
+
+![decoder](figures/decoder.png)
+
+のようにデコーダーに入力され、mean squared differencesを最小化するように学習された。このロスが0.0005を超えないようにスケールしてマージンロスの最小化の妨げにならないようにした。この正則化によりroutingのパフォーマンスが上がった。
+
 ## どうやって有効だと検証した
+
+MNISTで検証。シングルモデル、augmentationなしとしてはSoTA。
+
+### capsuleの各次元は何を表現しているか
+
+digit capsuleの各次元はそのdigitのなかでどのような空間が形成されるかを表しているはず。これらはstrokeの太さやskew, widthなどを含んでいる。
+
+![encode](figures/what-dimensions-encode.png)
+
+### CNNよりAffine変換に対して頑健なはず
+
+CNN(with MaxPooling + Dropout)とCapsNetを普通のMNIST(ただし40x40の黒背景の画像に埋め込まれている)で学習した後affNISTと呼ばれるaffine変換を施したMNISTでテストした。trainでは99.23%のaccuracyだったCapsNetはaffinstでは79%だった一方、trainで99.22%だったCNNはaffinistでは66%だった。
+
+### MultiMNIST
+
+Dynamic routingはparallel attention mechanismのようなものである。これにより大きなoverlapがあってもセグメンテーションができるはず。
 
 ## 議論はある
 
